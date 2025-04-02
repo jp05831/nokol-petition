@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoKol Petition</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+        
+        .paper {
+            position: relative;
+            width: 80%;
+            max-width: 600px;
+            min-height: 500px;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .petition-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+        
+        .signature-area {
+            margin-top: 40px;
+        }
+        
+        #signature-canvas {
+            border: 1px solid #eee;
+            background-color: #fff;
+            width: 100%;
+            height: 150px;
+            cursor: crosshair;
+        }
+        
+        .signature-label {
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: 5px;
+            display: block;
+        }
+        
+        .signature-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+        
+        .clear-btn {
+            background: none;
+            border: none;
+            color: #777;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .clear-btn:hover {
+            color: #444;
+        }
+        
+        .button-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .download-photo-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .download-photo-btn:hover {
+            background-color: #3e8e41;
+        }
+        
+        .download-photo-btn::before {
+            content: "";
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            background-color: white;
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z'/%3E%3C/svg%3E");
+            mask-repeat: no-repeat;
+            mask-position: center;
+            margin-right: 8px;
+        }
+        
+        .twitter-btn {
+            padding: 10px 20px;
+            background-color: #1DA1F2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .twitter-logo {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            transition: transform 0.2s ease;
+        }
+        
+        .ca-box {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffeb3b;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-family: monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .twitter-btn::before {
+            content: "";
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            background-color: white;
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z'/%3E%3C/svg%3E");
+            mask-repeat: no-repeat;
+            mask-position: center;
+            margin-right: 8px;
+        }
+    </style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('signature-canvas');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+            
+            // Set canvas dimensions to match displayed size
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                
+                // Set up the pen style
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#000'; // Black ink
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events
+            canvas.addEventListener('touchstart', startDrawingTouch);
+            canvas.addEventListener('touchmove', drawTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            function startDrawing(e) {
+                isDrawing = true;
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY);
+            }
+            
+            function startDrawingTouch(e) {
+                e.preventDefault();
+                isDrawing = true;
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+            
+            function drawTouch(e) {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+            
+            function stopDrawing() {
+                isDrawing = false;
+            }
+            
+            // Clear signature
+            document.getElementById('clear-signature').addEventListener('click', function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+            
+            // Download as image
+            document.getElementById('download-btn').addEventListener('click', function() {
+                if (isSigned()) {
+                    html2canvas(document.querySelector(".paper")).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'signed-nokol-petition.png';
+                        link.href = canvas.toDataURL();
+                        link.click();
+                    });
+                } else {
+                    alert("Please sign the petition before downloading");
+                }
+            });
+            
+            // Check if signature exists
+            function isSigned() {
+                const signatureData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                for (let i = 3; i < signatureData.length; i += 4) {
+                    if (signatureData[i] > 0) return true;
+                }
+                return false;
+            }
+            
+            // Update Twitter share link
+            const twitterBtn = document.getElementById('twitter-btn');
+            twitterBtn.addEventListener('click', function(e) {
+                if (!isSigned()) {
+                    e.preventDefault();
+                    alert("Please sign the petition before sharing on Twitter");
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="paper">
+        <div class="ca-box">CA:XXXXXXXXXXXXXXXXXPUMP</div>
+        
+        <a href="https://x.com/NoKolSol" target="_blank">
+            <img src="images/x__twitter-logo_brandlogos.net_fxbde.png" alt="Twitter/X Logo" class="twitter-logo">
+        </a>
+        
+        <h1 class="title">NoKol Petition</h1>
+        
+        <div class="petition-text">
+            <p>By signing below, I support the petition to jail all KOL groups.</p>
+        </div>
+        
+        <div class="signature-area">
+            <canvas id="signature-canvas"></canvas>
+            <span class="signature-label">Sign here using your mouse or touch screen</span>
+            <div class="signature-controls">
+                <button id="clear-signature" class="clear-btn">Clear signature</button>
+            </div>
+        </div>
+        
+        <div class="button-container">
+            <button id="download-btn" class="download-photo-btn">Download Photo</button>
+            <a id="twitter-btn" href="https://twitter.com/intent/tweet?text=I%20signed%20the%20%24NOKOL%20petition" target="_blank" class="twitter-btn">Share on Twitter</a>
+        </div>
+    </div>
+</body>
+</html>
